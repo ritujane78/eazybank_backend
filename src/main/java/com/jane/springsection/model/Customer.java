@@ -1,11 +1,10 @@
 package com.jane.springsection.model;
 
 import jakarta.persistence.*;
-import jdk.jfr.Enabled;
 import lombok.Getter;
 import lombok.Setter;
 
-@Enabled
+@Entity
 @Table(name = "customer")
 @Getter @Setter
 public class Customer {
