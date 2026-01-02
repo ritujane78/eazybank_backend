@@ -3,6 +3,7 @@ package com.jane.springsection.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -13,8 +14,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-@Profile("!prod")
-public class UsernamePasswordAuthenticationProvider implements AuthenticationProvider {
+@Profile("prod")
+public class UsernamePasswordAuthenticationProviderProd implements AuthenticationProvider {
 
     private final PasswordEncoder passwordEncoder;
     private final UserDetailsService userDetailsService;
@@ -25,8 +26,11 @@ public class UsernamePasswordAuthenticationProvider implements AuthenticationPro
         String username = authentication.getName();
         String password = authentication.getCredentials().toString();
         UserDetails user = userDetailsService.loadUserByUsername(username);
-
-        return new UsernamePasswordAuthenticationToken(user, password, user.getAuthorities());
+        if(passwordEncoder.matches(password, user.getPassword())) {
+            return new UsernamePasswordAuthenticationToken(user, password, user.getAuthorities());
+        }else {
+            throw new BadCredentialsException("Invalid username or password");
+        }
     }
 
     @Override
