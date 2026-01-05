@@ -2,13 +2,23 @@ package com.jane.springsection.config;
 
 import com.jane.springsection.exceptionhandling.CustomAccessDeniedHandler;
 import com.jane.springsection.exceptionhandling.CustomBasicAuthenticationEntryPoint;
+import com.jane.springsection.filter.CsrfCookieFilter;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
+import org.springframework.lang.Nullable;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AnyRequestMatcher;
+import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
+import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
+import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+
+import java.util.Collections;
 
 
 @Configuration
@@ -17,20 +27,38 @@ public class SecurityConfigProd {
 
     @Bean
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
+        CsrfTokenRequestAttributeHandler csrfTokenRequestAttributeHandler = new CsrfTokenRequestAttributeHandler();
         http
-                .sessionManagement(smc -> smc.invalidSessionUrl("/invalidSession").maximumSessions(1).maxSessionsPreventsLogin(true))
-                .redirectToHttps((https) -> https.requestMatchers(AnyRequestMatcher.INSTANCE)) // Only HTTPS
-                .csrf(csrf -> csrf.disable())
+                .cors(cors -> cors.configurationSource(new CorsConfigurationSource() {
+                    @Nullable
+                    @Override
+                    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+                        CorsConfiguration corsConfiguration = new CorsConfiguration();
+                        corsConfiguration.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
+                        corsConfiguration.setAllowedHeaders(Collections.singletonList("*"));
+                        corsConfiguration.setAllowedMethods(Collections.singletonList("*"));
+                        corsConfiguration.setAllowCredentials(true);
+                        corsConfiguration.setMaxAge(3600L);
+
+                        return corsConfiguration;
+                    }
+                }))
+                .csrf(csrf -> csrf.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
+                        .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
+                        .ignoringRequestMatchers("/contact","/register"))
+                .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
+                .redirectToHttps(https -> https.disable() )
+                .securityContext(securityContextConfig -> securityContextConfig.requireExplicitSave(false))
+                .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
                 .authorizeHttpRequests(
-                authorizeRequests -> authorizeRequests.
-                requestMatchers("/myAccount", "/myBalance", "/myCards", "/myLoans").authenticated()
-                        .requestMatchers("/myContact","/myNotices", "/error", "/register").permitAll()
-        );
+                        authorizeRequests -> authorizeRequests.
+                                requestMatchers("/myAccount", "/myBalance", "/myCards", "/myLoans", "/user").authenticated()
+                                .requestMatchers("/contact","/notices", "/error", "/register", "/invalidSession").permitAll()
+                );
 //        http.formLogin(flc -> flc.disable());
         http.formLogin(Customizer.withDefaults());
         http.httpBasic(hbc -> hbc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
         http.exceptionHandling(ehc -> ehc.accessDeniedHandler(new CustomAccessDeniedHandler()));
-
         return http.build();
     }
 

@@ -5,50 +5,48 @@ import com.jane.springsection.repository.CustomerRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.password.CompromisedPasswordChecker;
-import org.springframework.security.authentication.password.CompromisedPasswordDecision;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.sql.Date;
+import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
 public class UserController {
+
     private final CustomerRepository customerRepository;
     private final PasswordEncoder passwordEncoder;
-    private final CompromisedPasswordChecker checker;
-
-    public void validatePassword(String password){
-        CompromisedPasswordDecision decision = checker.check(password);
-        if (decision.isCompromised()) {
-            throw new IllegalArgumentException(
-                    "Password has been compromised in a data breach"
-            );
-        }
-    }
 
     @PostMapping("/register")
-    public ResponseEntity<?> create(@RequestBody Customer customer) {
+    public ResponseEntity<String> registerUser(@RequestBody Customer customer) {
         try {
-            Customer newCustomer = new Customer();
-            newCustomer.setEmail(customer.getEmail());
-            validatePassword(customer.getPwd());
-            String hashedPwd = passwordEncoder.encode(customer.getPwd());
-            newCustomer.setPwd(hashedPwd);
-            newCustomer.setRole(customer.getRole());
+            String hashPwd = passwordEncoder.encode(customer.getPwd());
+            customer.setPwd(hashPwd);
+            customer.setCreateDt(new Date(System.currentTimeMillis()));
+            Customer savedCustomer = customerRepository.save(customer);
 
-            customerRepository.save(newCustomer);
-
-            if(newCustomer.getId() > 0){
-                return ResponseEntity.status(HttpStatus.CREATED).body("User successfully created");
-            }else {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("User registration failed");
+            if (savedCustomer.getId() > 0) {
+                return ResponseEntity.status(HttpStatus.CREATED).
+                        body("Given user details are successfully registered");
+            } else {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).
+                        body("User registration failed");
             }
-        } catch (Exception ex){
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An exception occurred "+ex.getMessage());
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).
+                    body("An exception occurred: " + ex.getMessage());
         }
-
-
     }
+
+    @RequestMapping("/user")
+    public Customer getUserDetailsAfterLogin(Authentication authentication) {
+        Optional<Customer> optionalCustomer = customerRepository.findByEmail(authentication.getName());
+        return optionalCustomer.orElse(null);
+    }
+
 }
