@@ -34,7 +34,7 @@ public class SecurityConfigProd {
                     @Override
                     public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                         CorsConfiguration corsConfiguration = new CorsConfiguration();
-                        corsConfiguration.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
+                        corsConfiguration.setAllowedOrigins(Collections.singletonList("https://localhost:4200"));
                         corsConfiguration.setAllowedHeaders(Collections.singletonList("*"));
                         corsConfiguration.setAllowedMethods(Collections.singletonList("*"));
                         corsConfiguration.setAllowCredentials(true);
@@ -51,8 +51,12 @@ public class SecurityConfigProd {
                 .securityContext(securityContextConfig -> securityContextConfig.requireExplicitSave(false))
                 .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
                 .authorizeHttpRequests(
-                        authorizeRequests -> authorizeRequests.
-                                requestMatchers("/myAccount", "/myBalance", "/myCards", "/myLoans", "/user").authenticated()
+                        authorizeRequests -> authorizeRequests
+                                .requestMatchers("/myAccount").hasRole("USER")
+                                .requestMatchers("/myBalance").hasAnyRole("USER", "ADMIN")
+                                .requestMatchers("/myLoans").hasRole("USER")
+                                .requestMatchers("/myCards").hasRole("USER")
+                                .requestMatchers("/user").authenticated()
                                 .requestMatchers("/contact","/notices", "/error", "/register", "/invalidSession").permitAll()
                 );
 //        http.formLogin(flc -> flc.disable());

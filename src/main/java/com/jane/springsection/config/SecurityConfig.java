@@ -51,8 +51,12 @@ public class SecurityConfig {
                 .securityContext(securityContextConfig -> securityContextConfig.requireExplicitSave(false))
                 .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
                 .authorizeHttpRequests(
-                authorizeRequests -> authorizeRequests.
-                requestMatchers("/myAccount", "/myBalance", "/myCards", "/myLoans", "/user").authenticated()
+                authorizeRequests -> authorizeRequests
+                        .requestMatchers("/myAccount").hasRole("USER")
+                        .requestMatchers("/myBalance").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers("/myLoans").hasRole("USER")
+                        .requestMatchers("/myCards").hasRole("USER")
+                        .requestMatchers("/user").authenticated()
                         .requestMatchers("/contact","/notices", "/error", "/register", "/invalidSession").permitAll()
         );
 //        http.formLogin(flc -> flc.disable());
