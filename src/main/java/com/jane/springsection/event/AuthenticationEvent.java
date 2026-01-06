@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 public class AuthenticationEvent {
     @EventListener
     public void onSuccess(AuthenticationSuccessEvent success) {
-        log.info("Login succcccccessful for the user {}", success.getAuthentication().getName());
+        log.info("Login succcessful for the user {}", success.getAuthentication().getName());
     }
 
     @EventListener

@@ -3,6 +3,9 @@ package com.jane.springsection.config;
 import com.jane.springsection.exceptionhandling.CustomAccessDeniedHandler;
 import com.jane.springsection.exceptionhandling.CustomBasicAuthenticationEntryPoint;
 import com.jane.springsection.filter.CsrfCookieFilter;
+import com.jane.springsection.filter.JwtTokenGeneratorFilter;
+import com.jane.springsection.filter.JwtTokenValidatorFilter;
+import com.jane.springsection.filter.RequestValidationBeforeFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,6 +21,7 @@ import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 
+import java.util.Arrays;
 import java.util.Collections;
 
 
@@ -34,10 +38,11 @@ public class SecurityConfigProd {
                     @Override
                     public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                         CorsConfiguration corsConfiguration = new CorsConfiguration();
-                        corsConfiguration.setAllowedOrigins(Collections.singletonList("https://localhost:4200"));
-                        corsConfiguration.setAllowedHeaders(Collections.singletonList("*"));
+                        corsConfiguration.setAllowedOrigins(Collections.singletonList("http://localhost:4200"));
                         corsConfiguration.setAllowedMethods(Collections.singletonList("*"));
+                        corsConfiguration.setAllowedHeaders(Collections.singletonList("*"));
                         corsConfiguration.setAllowCredentials(true);
+                        corsConfiguration.setExposedHeaders(Arrays.asList("Authorization"));
                         corsConfiguration.setMaxAge(3600L);
 
                         return corsConfiguration;
@@ -46,10 +51,13 @@ public class SecurityConfigProd {
                 .csrf(csrf -> csrf.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
                         .ignoringRequestMatchers("/contact","/register"))
+                .addFilterBefore(new RequestValidationBeforeFilter(), BasicAuthenticationFilter.class)
                 .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
+                .addFilterAfter(new JwtTokenGeneratorFilter(), BasicAuthenticationFilter.class)
+                .addFilterBefore(new JwtTokenValidatorFilter(),  BasicAuthenticationFilter.class)
                 .redirectToHttps(https -> https.disable() )
                 .securityContext(securityContextConfig -> securityContextConfig.requireExplicitSave(false))
-                .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+                .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(
                         authorizeRequests -> authorizeRequests
                                 .requestMatchers("/myAccount").hasRole("USER")
