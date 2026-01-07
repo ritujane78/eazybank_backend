@@ -28,10 +28,10 @@ public class JwtTokenValidatorFilter extends OncePerRequestFilter {
             try {
                 String jwt = authHeader.substring(7);
                 Environment environment = getEnvironment();
-                if(environment != null) {
+                if (environment != null) {
                     String secret = environment.getProperty(ApplicationConstants.JWT_SECRET_KEY, ApplicationConstants.JWT_SECRET_DEFAULT_VALUE);
                     SecretKey secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-                    if(secretKey!=null){
+                    if (secretKey != null) {
                         Claims claims = Jwts.parser().verifyWith(secretKey)
                                 .build().parseSignedClaims(jwt).getPayload();
                         String username = String.valueOf(claims.get("username"));
@@ -44,12 +44,11 @@ public class JwtTokenValidatorFilter extends OncePerRequestFilter {
 
                 }
 
-                filterChain.doFilter(request, response);
             }catch(Exception e){
                 throw new BadCredentialsException("Invalid token");
             }
-
         }
+        filterChain.doFilter(request, response);
     }
 
     @Override

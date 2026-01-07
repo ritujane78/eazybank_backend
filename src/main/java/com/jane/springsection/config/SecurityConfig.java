@@ -11,9 +11,13 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.lang.Nullable;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -50,7 +54,7 @@ public class SecurityConfig {
                 }))
                 .csrf(csrf -> csrf.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .ignoringRequestMatchers("/contact","/register"))
+                        .ignoringRequestMatchers("/contact","/register", "/apiLogin"))
                 .addFilterBefore(new RequestValidationBeforeFilter(), BasicAuthenticationFilter.class)
                 .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
                 .addFilterAfter(new JwtTokenGeneratorFilter(), BasicAuthenticationFilter.class)
@@ -65,13 +69,22 @@ public class SecurityConfig {
                         .requestMatchers("/myLoans").hasRole("USER")
                         .requestMatchers("/myCards").hasRole("USER")
                         .requestMatchers("/user").authenticated()
-                        .requestMatchers("/contact","/notices", "/error", "/register", "/invalidSession").permitAll()
+                        .requestMatchers("/contact","/notices", "/error", "/register", "/invalidSession", "/apiLogin").permitAll()
         );
 //        http.formLogin(flc -> flc.disable());
         http.formLogin(Customizer.withDefaults());
         http.httpBasic(hbc -> hbc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
         http.exceptionHandling(ehc -> ehc.accessDeniedHandler(new CustomAccessDeniedHandler()));
         return http.build();
+    }
+    @Bean
+    public AuthenticationManager authenticationManager(UserDetailsService userDetailsService
+            , PasswordEncoder passwordEncoder) {
+        UsernamePasswordAuthenticationProvider usernamePasswordAuthenticationProvider =
+                new UsernamePasswordAuthenticationProvider(passwordEncoder, userDetailsService);
+        ProviderManager providerManager = new ProviderManager(usernamePasswordAuthenticationProvider);
+        providerManager.setEraseCredentialsAfterAuthentication(false);
+        return providerManager;
     }
 
 //    @Bean
