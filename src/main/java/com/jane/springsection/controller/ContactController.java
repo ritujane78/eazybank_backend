@@ -19,19 +19,19 @@ public class ContactController {
 
     private final ContactRepository contactRepository;
 
-//    @PreFilter("filterObject.contactName !='Test'")
-    @PostFilter("filterObject.contactName !='Test'")
     @PostMapping("/contact")
+    // @PreFilter("filterObject.contactName != 'Test'")
+    @PostFilter("filterObject.contactName != 'Test'")
     public List<Contact> saveContactInquiryDetails(@RequestBody List<Contact> contacts) {
-        List<Contact> allContacts = new ArrayList<>();
-        if(!contacts.isEmpty()){
+        List<Contact> returnContacts = new ArrayList<>();
+        if(!contacts.isEmpty()) {
             Contact contact = contacts.getFirst();
             contact.setContactId(getServiceReqNumber());
             contact.setCreateDt(new Date(System.currentTimeMillis()));
-            contactRepository.save(contact);
-            allContacts.add(contact);
+            Contact savedContact = contactRepository.save(contact);
+            returnContacts.add(savedContact);
         }
-        return allContacts;
+        return returnContacts;
     }
 
     public String getServiceReqNumber() {

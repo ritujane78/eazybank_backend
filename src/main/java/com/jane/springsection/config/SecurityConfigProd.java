@@ -1,23 +1,15 @@
 package com.jane.springsection.config;
 
 import com.jane.springsection.exceptionhandling.CustomAccessDeniedHandler;
-import com.jane.springsection.exceptionhandling.CustomBasicAuthenticationEntryPoint;
 import com.jane.springsection.filter.CsrfCookieFilter;
-import com.jane.springsection.filter.JwtTokenGeneratorFilter;
-import com.jane.springsection.filter.JwtTokenValidatorFilter;
-import com.jane.springsection.filter.RequestValidationBeforeFilter;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 import org.springframework.lang.Nullable;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.ProviderManager;
-import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
@@ -35,6 +27,8 @@ public class SecurityConfigProd {
 
     @Bean
     public SecurityFilterChain configure(HttpSecurity http) throws Exception {
+        JwtAuthenticationConverter jwtAuthenticationConverter = new JwtAuthenticationConverter();
+        jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(new KeycloakRoleConverter());
         CsrfTokenRequestAttributeHandler csrfTokenRequestAttributeHandler = new CsrfTokenRequestAttributeHandler();
         http
                 .cors(cors -> cors.configurationSource(new CorsConfigurationSource() {
@@ -54,11 +48,8 @@ public class SecurityConfigProd {
                 }))
                 .csrf(csrf -> csrf.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse())
-                        .ignoringRequestMatchers("/contact","/register", "/apiLogin"))
-                .addFilterBefore(new RequestValidationBeforeFilter(), BasicAuthenticationFilter.class)
+                        .ignoringRequestMatchers("/contact"))
                 .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
-                .addFilterAfter(new JwtTokenGeneratorFilter(), BasicAuthenticationFilter.class)
-                .addFilterBefore(new JwtTokenValidatorFilter(),  BasicAuthenticationFilter.class)
                 .redirectToHttps(https -> https.disable() )
                 .securityContext(securityContextConfig -> securityContextConfig.requireExplicitSave(false))
                 .sessionManagement(sessionConfig -> sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
@@ -69,22 +60,11 @@ public class SecurityConfigProd {
                                 .requestMatchers("/myLoans").authenticated()
                                 .requestMatchers("/myCards").hasRole("USER")
                                 .requestMatchers("/user").authenticated()
-                                .requestMatchers("/contact","/notices", "/error", "/register", "/invalidSession").permitAll()
+                                .requestMatchers("/contact","/notices", "/error").permitAll()
                 );
-//        http.formLogin(flc -> flc.disable());
-        http.formLogin(Customizer.withDefaults());
-        http.httpBasic(hbc -> hbc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
+        http.oauth2ResourceServer(rsc -> rsc.jwt(jwtConfigurer -> jwtConfigurer.jwtAuthenticationConverter(jwtAuthenticationConverter)));
         http.exceptionHandling(ehc -> ehc.accessDeniedHandler(new CustomAccessDeniedHandler()));
         return http.build();
-    }
-    @Bean
-    public AuthenticationManager authenticationManager(UserDetailsService userDetailsService
-            , PasswordEncoder passwordEncoder) {
-        UsernamePasswordAuthenticationProviderProd usernamePasswordAuthenticationProvider =
-                new UsernamePasswordAuthenticationProviderProd(passwordEncoder, userDetailsService);
-        ProviderManager providerManager = new ProviderManager(usernamePasswordAuthenticationProvider);
-        providerManager.setEraseCredentialsAfterAuthentication(false);
-        return providerManager;
     }
 //    @Bean
 //    public UserDetailsService userDetailsService(DataSource dataSource) {
