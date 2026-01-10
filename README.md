@@ -47,7 +47,7 @@ This branch demonstrates **enterprise-grade authentication** using an industry-s
 
 ---
 
-### spring-security-jwttokens branch
+### `spring-security-jwttokens` branch
 
 Focuses on:
 - JWT-based authentication using Spring Security
