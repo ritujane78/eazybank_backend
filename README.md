@@ -28,6 +28,37 @@ This backend includes full security and API support as taught in the course:
 
 ---
 
+## Branch Overview ⭐
+
+This repository is intentionally structured with **multiple branches** to demonstrate **progressive security implementations**. Each branch highlights a specific security concept and can be reviewed independently.
+
+### `main` branch
+
+### `oauth2-keycloak` branch
+
+
+Focuses on:
+- OAuth2 implementation using **Keycloak Authorization Server**
+- Externalized authentication and identity management
+- OAuth2 Authorization Code flow
+- Integration tested using **Postman**
+
+This branch demonstrates **enterprise-grade authentication** using an industry-standard IAM solution.
+
+---
+
+### spring-security-jwttokens branch
+
+Focuses on:
+- JWT-based authentication using Spring Security
+- Custom JWT token generation and validation
+- Stateless authentication without external identity providers
+- Role-based authorization (ADMIN, USER)
+- Custom authentication and authorization filters
+- Secure password encoding using BCrypt
+
+This branch demonstrates a core, from-scratch implementation of Spring Security with JWT, forming a strong foundation for understanding authentication and authorization before introducing OAuth2 and external IAM solutions.
+
 ##  Tech Stack
 
 | Layer | Technology |
