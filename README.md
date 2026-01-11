@@ -19,16 +19,16 @@ This backend includes full security and API support as taught in the
 course:
 
 -   Spring Boot REST APIs
--   Spring Security with JWT-based authentication
--   Role-based access control (ADMIN / USER)
--   Custom Security Filters
--   CSRF & CORS configuration
--   Method-level security (`@PreAuthorize`, etc.)
--   Secure password encoding using BCrypt
--   Authentication & Authorization flows
--   Exception handling and clean API responses
--   Environment-specific configuration using Spring Profiles (`default`,
-    `prod`)
+  -   Spring Security with JWT-based authentication
+    -   Role-based access control (ADMIN / USER)
+    -   Custom Security Filters
+    -   CSRF & CORS configuration
+    -   Method-level security (`@PreAuthorize`, etc.)
+    -   Secure password encoding using BCrypt
+    -   Authentication & Authorization flows
+    -   Exception handling and clean API responses
+    -   Environment-specific configuration using Spring Profiles (`default`,
+        `prod`)
 
 ------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ configuration and security behavior.
 ### Available Profiles
 
 -   **`default`** -- Local development and testing\
--   **`prod`** -- Production-ready configuration
+  -   **`prod`** -- Production-ready configuration
 
 Each profile includes: - A dedicated `application-<profile>.properties`
 file - Profile-specific **security configurations** -
@@ -70,20 +70,33 @@ configuration practices**.
 
 ------------------------------------------------------------------------
 
-## Branch Overview ⭐
+## Branch Overview 
 
-This repository is intentionally structured with **multiple branches** to demonstrate **progressive security implementations**. Each branch highlights a specific security concept and can be reviewed independently.
+This repository is intentionally structured with multiple branches to demonstrate progressive security implementations.
+Each branch highlights a specific security concept and can be reviewed independently.
 
 ### `main` branch
+
+The main branch contains the stable, production-ready backend configuration.
+
+In addition to JWT-based security, the code in this branch is fully compatible with a Spring Authorization Server and can be used as a Resource Server.
+
+- Designed to integrate seamlessly with an external OAuth2 Authorization Server.
+- Supports token validation and role/authority-based access control.
+- Ideal for enterprise architectures where authentication is centralized
+
+ Spring Authorization Server implementation: https://github.com/ritujane78/spring_auth_server
+
+You can run this backend alongside the above authorization server to enable OAuth2-based authentication and authorization flows.
 
 ### `oauth2-keycloak` branch
 
 
 Focuses on:
 - OAuth2 implementation using **Keycloak Authorization Server**
-- Externalized authentication and identity management
-- OAuth2 Authorization Code flow
-- Integration tested using **Postman**
+  - Externalized authentication and identity management
+  - OAuth2 Authorization Code flow
+  - Integration tested using **Postman**
 
 This branch demonstrates **enterprise-grade authentication** using an industry-standard IAM solution.
 
@@ -93,11 +106,11 @@ This branch demonstrates **enterprise-grade authentication** using an industry-s
 
 Focuses on:
 - JWT-based authentication using Spring Security
-- Custom JWT token generation and validation
-- Stateless authentication without external identity providers
-- Role-based authorization (ADMIN, USER)
-- Custom authentication and authorization filters
-- Secure password encoding using BCrypt
+  - Custom JWT token generation and validation
+  - Stateless authentication without external identity providers
+  - Role-based authorization (ADMIN, USER)
+  - Custom authentication and authorization filters
+  - Secure password encoding using BCrypt
 
 This branch demonstrates a core, from-scratch implementation of Spring Security with JWT, forming a strong foundation for understanding authentication and authorization before introducing OAuth2 and external IAM solutions.
 
@@ -119,9 +132,9 @@ This branch demonstrates a core, from-scratch implementation of Spring Security 
 ### Prerequisites
 
 - Java 17+
-- Maven 3.6+
-- MySQL
-- Postman (for testing)
+  - Maven 3.6+
+  - MySQL
+  - Postman (for testing)
 
 ---
 
@@ -157,16 +170,22 @@ mvn spring-boot:run
 
 ##  API Overview
 
-| Endpoint | Description |
-|--------|-------------|
-| POST `/api/auth/register` | Register a new user |
-| POST `/api/auth/login` | Authenticate and receive JWT |
-| GET `/api/user/**` | Secured user APIs |
+| Endpoint                                  | Description                        |
+|-------------------------------------------|------------------------------------|
+| GET `/myAccount?email=<registered_email>` | View Account Details (only ADMINS) |
+| GET `/myBalance?email=<registered_email>` | View Balance (only ADMINS)         |
+| GET `/myCards?email=<registered_email>`   | View Card Details (only ADMINS)    |
+| GET `/contacts`                           | View Contact Details (public)      |
+| GET `/myLoans?email=<registered_email>`   | View Loans (only ADMINS)           |
+| GET `/notices`                            | View notices  (public)             |
+| GET `/user`                               | Login                              |
 
 
 JWT must be passed in the header:
 ```
 Authorization: Bearer <token>
+The token can be generated in **Postman** in **Authorization** tab.
+
 ```
 
 ---
@@ -174,10 +193,10 @@ Authorization: Bearer <token>
 ## Security Highlights
 
 - Custom JWT authentication filter
-- Stateless session management
-- Role & authority-based authorization
-- CORS and CSRF configuration
-- Secure password storage
+  - Stateless session management
+  - Role & authority-based authorization
+  - CORS and CSRF configuration
+  - Secure password storage
 
 ---
 
