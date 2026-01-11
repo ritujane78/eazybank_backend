@@ -12,21 +12,63 @@ The frontend for this application is written in **Angular**.
 
 ---
 
-##  Features
 
-This backend includes full security and API support as taught in the course:
+## Features
 
-- Spring Boot REST APIs
-- Spring Security with JWT-based authentication
-- Role-based access control (ADMIN / USER)
-- Custom Security Filters
-- CSRF & CORS configuration
-- Method-level security (`@PreAuthorize`, etc.)
-- Secure password encoding using BCrypt
-- Authentication & Authorization flows
-- Exception handling and clean API responses
+This backend includes full security and API support as taught in the
+course:
 
----
+-   Spring Boot REST APIs
+-   Spring Security with JWT-based authentication
+-   Role-based access control (ADMIN / USER)
+-   Custom Security Filters
+-   CSRF & CORS configuration
+-   Method-level security (`@PreAuthorize`, etc.)
+-   Secure password encoding using BCrypt
+-   Authentication & Authorization flows
+-   Exception handling and clean API responses
+-   Environment-specific configuration using Spring Profiles (`default`,
+    `prod`)
+
+------------------------------------------------------------------------
+
+## Environment Profiles & Configuration
+
+This backend uses **Spring Profiles** to support environment-specific
+configuration and security behavior.
+
+### Available Profiles
+
+-   **`default`** -- Local development and testing\
+-   **`prod`** -- Production-ready configuration
+
+Each profile includes: - A dedicated `application-<profile>.properties`
+file - Profile-specific **security configurations** -
+Environment-dependent values such as: - Database connections - JWT /
+OAuth2 configuration - CORS and CSRF rules
+
+### Runtime Profile Selection
+
+No code changes are required.\
+Simply activating a profile automatically enables the corresponding
+configuration and security setup.
+
+**Using `application.properties`:**
+
+``` properties
+spring.profiles.active=default
+```
+
+**Using command line at runtime:**
+
+``` bash
+mvn spring-boot:run -Dspring-boot.run.profiles=prod
+```
+
+This approach reflects **real-world, production-grade Spring Boot
+configuration practices**.
+
+------------------------------------------------------------------------
 
 ## Branch Overview ⭐
 
@@ -120,7 +162,7 @@ mvn spring-boot:run
 | POST `/api/auth/register` | Register a new user |
 | POST `/api/auth/login` | Authenticate and receive JWT |
 | GET `/api/user/**` | Secured user APIs |
-| GET `/api/admin/**` | Admin-only APIs |
+
 
 JWT must be passed in the header:
 ```
@@ -147,12 +189,13 @@ src
 │   ├── java
 │   │   └── com.eazybank
 │   │       ├── config
+│   │       ├── constants
 │   │       ├── controller
-│   │       ├── dto
-│   │       ├── entity
+│   │       ├── event
+│   │       ├── exceptionhandling
+│   │       ├── filter
+│   │       ├── model
 │   │       ├── repository
-│   │       ├── security
-│   │       └── service
 │   └── resources
 │       └── application.properties
 ```
@@ -166,13 +209,4 @@ Ensure JWT tokens are attached to requests where required.
 
 ---
 
-##  Deployment
-
-The application can be deployed using:
-- Docker
-- AWS
-- Azure
-- Heroku
-
----
 
