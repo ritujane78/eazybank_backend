@@ -106,14 +106,17 @@ mvn spring-boot:run
 
 ##  API Overview
 
-| Endpoint | Description |
-|--------|-------------|
-| POST `/api/auth/register` | Register a new user |
-| POST `/api/auth/login` | Authenticate and receive JWT |
-| GET `/api/user/**` | Secured user APIs |
-| GET `/api/admin/**` | Admin-only APIs |
+| Endpoint                                  | Description                        |
+|-------------------------------------------|------------------------------------|
+| GET `/myAccount?email=<registered_email>` | View Account Details (only ADMINS) |
+| GET `/myBalance?email=<registered_email>` | View Balance (only ADMINS)         |
+| GET `/myCards?email=<registered_email>`   | View Card Details (only ADMINS)    |
+| GET `/contacts`                           | View Contact Details (public)      |
+| GET `/myLoans?email=<registered_email>`   | View Loans (only ADMINS)           |
+| GET `/notices`                            | View notices  (public)             |
+| GET `/user`                               | Login                              |
 
-JWT must be passed in the header:
+JWT is generated here and passed in the header:
 ```
 Authorization: Bearer <token>
 ```
@@ -136,14 +139,15 @@ Authorization: Bearer <token>
 src
 ├── main
 │   ├── java
-│   │   └── com.eazybank
+│   │   └── com.jane
 │   │       ├── config
+│   │       ├── constants
 │   │       ├── controller
-│   │       ├── dto
-│   │       ├── entity
+│   │       ├── event
+│   │       ├── exceptionhandling
+│   │       ├── filter
+│   │       ├── model
 │   │       ├── repository
-│   │       ├── security
-│   │       └── service
 │   └── resources
 │       └── application.properties
 ```
@@ -154,16 +158,6 @@ src
 
 Use **Postman** to test secured APIs.
 Ensure JWT tokens are attached to requests where required.
-
----
-
-##  Deployment
-
-The application can be deployed using:
-- Docker
-- AWS
-- Azure
-- Heroku
 
 ---
 
