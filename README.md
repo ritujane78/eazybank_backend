@@ -31,6 +31,48 @@ This backend includes full security and API support as taught in the course:
 - Secure password encoding using BCrypt
 - Authentication & Authorization flows
 - Exception handling and clean API responses
+-   Environment-specific configuration using Spring Profiles (`default`,
+     `prod`)
+
+------------------------------------------------------------------------
+
+## Environment Profiles & Configuration
+
+This backend uses **Spring Profiles** to support environment-specific
+configuration and security behavior.
+
+### Available Profiles
+
+-   **`default`** -- Local development and testing\
+  -   **`prod`** -- Production-ready configuration
+
+Each profile includes: - A dedicated `application-<profile>.properties`
+file - Profile-specific **security configurations** -
+Environment-dependent values such as: - Database connections - JWT /
+OAuth2 configuration - CORS and CSRF rules
+
+### Runtime Profile Selection
+
+No code changes are required.\
+Simply activating a profile automatically enables the corresponding
+configuration and security setup.
+
+**Using `application.properties`:**
+
+``` properties
+spring.profiles.active=default
+```
+
+**Using command line at runtime:**
+
+``` bash
+mvn spring-boot:run -Dspring-boot.run.profiles=prod
+```
+
+This approach reflects **real-world, production-grade Spring Boot
+configuration practices**.
+
+------------------------------------------------------------------------
 
 ---
 
@@ -86,17 +128,22 @@ mvn spring-boot:run
 ```
 
 ---
-
 ##  API Overview
 
-| Endpoint | Description |
-|--------|-------------|
-| POST `/api/auth/register` | Register a new user |
-| POST `/api/auth/login` | Authenticate and receive JWT |
-| GET `/api/user/**` | Secured user APIs |
-| GET `/api/admin/**` | Admin-only APIs |
+| Endpoint                                  | Description                        |
+|-------------------------------------------|------------------------------------|
+| POST `/register`                          | Register a user                    |
+| GET  `/user`                              | Login  and generate jwt token      |
+| POST `/apiLogin`                          | Access APIs                        |
+| GET `/myAccount?email=<registered_email>` | View Account Details (only ADMINS) |
+| GET `/myBalance?email=<registered_email>` | View Balance (only ADMINS)         |
+| GET `/myCards?email=<registered_email>`   | View Card Details (only ADMINS)    |
+| GET `/contacts`                           | View Contact Details (public)      |
+| GET `/myLoans?email=<registered_email>`   | View Loans (only ADMINS)           |
+| GET `/notices`                            | View notices  (public)             |
 
-JWT must be passed in the header:
+
+JWT is generated and passed in the header:
 ```
 Authorization: Bearer <token>
 ```
@@ -121,14 +168,17 @@ src
 │   ├── java
 │   │   └── com.eazybank
 │   │       ├── config
+│   │       ├── constants
 │   │       ├── controller
-│   │       ├── dto
-│   │       ├── entity
+│   │       ├── event
+│   │       ├── exceptionhandling
+│   │       ├── filter
+│   │       ├── model
 │   │       ├── repository
-│   │       ├── security
-│   │       └── service
+│   │       ├── service
 │   └── resources
 │       └── application.properties
+
 ```
 
 ---
